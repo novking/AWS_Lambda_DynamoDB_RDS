@@ -45,12 +45,70 @@ exports.handler(event, context){
                 console.log("Found the userdata");
                 if(event.password!=rows[0].password){
                     console.log('incorrect password');
-                    readModuleFile('./incorrect.html')
+                    readModuleFile('./incorrect.html', function(err, incorrect){
+                        var resp = incorrect;
+                        context.succeed({"respon":incorrect});
+                    });
                 }
+                var row_id = rows[0].id;
+                var name = rows[0].name;
+                var sql = "SELECT * FROM login";
+                var result = conn.query( sql, function(error, rows, fields){
+                    if(error){
+                        console.log(error.message);
+                        throw error;
+                    }
+                    else{
+                        console.log("row details", rows);
+                        details = [];
+                        name_detail = [];
+                        tail = "";
+                        rows.forEach(function(row){
+                            console.log("my Id:"+row.id);
+                            var i = 0;
+                            var rowID = row.id;
+                            var params = {
+                                "TableName":"status",
+                                "Key":{
+                                    "UserId":row.id
+                                }
+                            };
+                            dynamo.getItem(params, function(err, data){
+                                if (err){
+                                    console.log(err);
+                                    context.succeed(err);
+                                }
+                                else{
+                                    console.log("the data is :", data);
+                                    i++;
+                                    console.log("value of i:", i);
+                                    details[rowID]=data.Item.status;
+                                    name_detail[rowID]=data.Item.name;
+                                    console.log("the status to be printed",details[rowID]);
+                                    console.log("The length of details array is:",details.length);
+                                    tail=tail+"<tr><td><h4>"+name_detail[rowID]+"</h4></td><td><h4>"+details[rowID]+"</h4></td></tr>";	
+                                    console.log("the raw length =",rows.length);
+                                    console.log("the current  raw ",row.length);
+                                    if(i>=rows.length){
+                                        readModuleFile('./success.html', function(err, success){
+                                            var res = success;
+                                            lastres=res+tail+"</tbody></table></div></body></html>"; 
+                                            context.succeed({"respon":lastres});
+                                        });
+                                    }
+                                }
+                            });
+                        });
+                    }
+                });
             }
             else{
-                
+                console.log("The user doesn't exit here");
+                readModuleFile('./notexist.html', function(err, not){
+                    var rest = not:
+                    context.succeed({"respon":rest});
+                });
             }
         }
     });
-}
+};
