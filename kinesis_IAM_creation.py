@@ -98,6 +98,7 @@ if __name__=='__main__':
                 
         
     
-    
+#    reference:
+#    https://developmentseed.org/blog/2016/03/08/aws-lambda-functions/
             
     
